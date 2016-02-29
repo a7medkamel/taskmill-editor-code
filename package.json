@@ -1,0 +1,42 @@
+{
+  "name": "taskmill",
+  "displayName": "TaskMill",
+  "description": "Run Node Scripts hosted on GitHub through your editor",
+  "version": "0.0.1",
+  "publisher": "TaskMill",
+  "engines": {
+    "vscode": "^0.10.6"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:extension.run_git"
+  ],
+  "main": "./extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.run_git",
+        "title": "TaskMill"
+      }
+    ],
+    "keybindings": [
+        {
+            "command": "extension.run_git",
+            "key": "Ctrl+Shift+T",
+            "mac": "Cmd+Shift+T"
+        }
+    ]
+  },
+  "scripts": {
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "vscode": "^0.11.0"
+  },
+  "dependencies": {
+    "lodash": "^4.5.1",
+    "request-promise": "^2.0.1"
+  }
+}
