@@ -31,8 +31,7 @@ function activate(context) {
 		// vscode.window.showInformationMessage('Hello World!');
         
         var opts = {
-            // url     : 'https://taskmill.io/script/search'
-            url     : 'http://localhost:1337/script/search'
+            url     : 'https://taskmill.io/script/search'
           , json    : true
         };
         
