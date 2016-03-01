@@ -2,8 +2,15 @@
 // Import the module and reference it with the alias vscode in your code below
 var vscode = require('vscode');
 
-var rp  = require('request-promise')
-  , _   = require('lodash')
+var rp              = require('request-promise') 
+  , request         = require('request') 
+  , _               = require('lodash')
+  , contentType     = require('content-type')
+  , fs              = require('fs-extra')
+  , open            = require('open')
+  , tmp             = require('tmp')
+  , mime            = require('mime-type/with-db')
+  , Promise         = require('bluebird')
   ;
 
 // this method is called when your extension is activated
@@ -24,7 +31,8 @@ function activate(context) {
 		// vscode.window.showInformationMessage('Hello World!');
         
         var opts = {
-            url     : 'https://taskmill.io/script/search'
+            // url     : 'https://taskmill.io/script/search'
+            url     : 'http://localhost:1337/script/search'
           , json    : true
         };
         
@@ -32,7 +40,7 @@ function activate(context) {
         
         vscode.window
                 .showQuickPick(rp.get(opts).then(function(result){
-                    return _.map(result, function(item){ return _.extend(item, { description : item.name }); });
+                    return _.map(result, function(item){ return _.extend(item, { description : item.description || '', detail : item.html_url || '', label: item.title || '' }); });
                 }))
                 .then(function(chosen) {
                     if (chosen) {
@@ -42,9 +50,8 @@ function activate(context) {
                         }
                         
                         var opts = {
-                            method                  : 'GET'
-                          , url                     : chosen.run_url
-                          , resolveWithFullResponse : true
+                            method  : 'GET'
+                          , url     : chosen.run_url
                         };
                         
                         if (text) {
@@ -52,27 +59,62 @@ function activate(context) {
                             opts.body = text;
                         }
                         
-                        return rp(opts);
+                        return Promise
+                                .promisify(tmp.tmpName)({ prefix : 'taskmill-'/*, postfix : '.tmp'*/ })
+                                .then(function(filename) {
+                                    return new Promise(function(resolve, reject){
+                                        var res = request(opts)
+                                                    .on('response', function(response) {
+                                                        var content_type    = contentType.parse(response.headers['content-type'] || '') || {}
+                                                          , mime_type       = content_type.type 
+                                                          , ext             = mime.extension(response.headers['content-type'])
+                                                          , enc             = mime.charset(response.headers['content-type']) || 'binary'
+                                                          ;
+                                                        
+                                                        if (ext) {
+                                                            filename = filename + '.' + ext;   
+                                                        }
+                                                        
+                                                        var to = fs.createOutputStream(filename, { defaultEncoding : enc });
+                                                        
+                                                        res.pipe(to)
+                                                            .on('finish', function () {
+                                                                var ret = undefined;
+                                                                if (_.isString(mime_type) && mime_type.match(/^text\/\w+$/gi) && editor) {
+                                                                    ret = Promise
+                                                                            .promisify(fs.readFile)(filename, { encoding : enc })
+                                                                            .then(function(text){
+                                                                                var sel = editor.selection;
+                                                                                return editor.edit(function(edit){
+                                                                                        if (sel.start.compareTo(sel.end) === 0) {
+                                                                                            edit.insert(sel.start, text);
+                                                                                        } else {
+                                                                                            var type = response.headers['$type'];
+                                                                                            if (type === 'generate') {
+                                                                                                edit.insert(sel.end, text);
+                                                                                            } else {
+                                                                                                edit.replace(sel, text);   
+                                                                                            }
+                                                                                        } 
+                                                                                    }); 
+                                                                            });
+                                                                } else {
+                                                                    open(filename);                                                                   
+                                                                }
+                                                                
+                                                                resolve(ret);
+                                                            })
+                                                            .on('error', function(err){
+                                                                reject(err);
+                                                            }); 
+                                                    })
+                                                    .on('error', function(err){ reject(err); });
+                                    }); 
+                                });
                     }
                 })
-                .then(function (response) {
-                    if (editor) {
-                        var sel = editor.selection;
-                        
-                        return editor.edit(function(edit){
-                            var result = response.body;
-                            if (sel.start.compareTo(sel.end) === 0) {
-                                edit.insert(sel.start, result);
-                            } else {
-                                var type = response.headers['$type'];
-                                if (type === 'generate') {
-                                    edit.insert(sel.end, result);
-                                } else {
-                                    edit.replace(sel, result);   
-                                }
-                            } 
-                        });
-                    }
+                .catch(function(err) {
+                    console.error(err);
                 })
                 ;
 	});
