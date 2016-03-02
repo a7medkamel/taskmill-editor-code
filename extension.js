@@ -5,7 +5,6 @@ var vscode = require('vscode');
 var rp              = require('request-promise') 
   , request         = require('request') 
   , _               = require('lodash')
-  , contentType     = require('content-type')
   , fs              = require('fs-extra')
   , open            = require('open')
   , tmp             = require('tmp')
@@ -64,9 +63,7 @@ function activate(context) {
                                     return new Promise(function(resolve, reject){
                                         var res = request(opts)
                                                     .on('response', function(response) {
-                                                        var content_type    = contentType.parse(response.headers['content-type'] || '') || {}
-                                                          , mime_type       = content_type.type 
-                                                          , ext             = mime.extension(response.headers['content-type'])
+                                                        var ext             = mime.extension(response.headers['content-type'])
                                                           , enc             = mime.charset(response.headers['content-type']) || 'binary'
                                                           ;
                                                         
@@ -79,7 +76,7 @@ function activate(context) {
                                                         res.pipe(to)
                                                             .on('finish', function () {
                                                                 var ret = undefined;
-                                                                if (_.isString(mime_type) && mime_type.match(/^text\/\w+$/gi) && editor) {
+                                                                if (enc != 'binary' && editor) {
                                                                     ret = Promise
                                                                             .promisify(fs.readFile)(filename, { encoding : enc })
                                                                             .then(function(text){

@@ -2,7 +2,7 @@
   "name": "taskmill",
   "displayName": "TaskMill",
   "description": "Run Node Scripts hosted on GitHub through your editor",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "a7medkamel",
   "engines": {
     "vscode": "^0.10.6"
@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "bluebird": "^3.3.3",
-    "content-type": "^1.0.1",
     "fs-extra": "^0.26.5",
     "lodash": "^4.5.1",
     "mime-db": "^1.22.0",
