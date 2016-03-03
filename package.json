@@ -36,14 +36,7 @@
     "vscode": "^0.11.0"
   },
   "dependencies": {
-    "bluebird": "^3.3.3",
-    "fs-extra": "^0.26.5",
     "lodash": "^4.5.1",
-    "mime-db": "^1.22.0",
-    "mime-type": "^3.0.4",
-    "open": "0.0.5",
-    "request": "^2.69.0",
-    "request-promise": "^2.0.1",
-    "tmp": "0.0.28"
+    "taskmill-cli": "git+https://github.com/a7medkamel/taskmill-cli.git"
   }
 }

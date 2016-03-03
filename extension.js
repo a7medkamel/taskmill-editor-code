@@ -1,16 +1,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-var vscode = require('vscode');
-
-var rp              = require('request-promise') 
-  , request         = require('request') 
-  , _               = require('lodash')
-  , fs              = require('fs-extra')
-  , open            = require('open')
-  , tmp             = require('tmp')
-  , mime            = require('mime-type/with-db')
-  , Promise         = require('bluebird')
+var vscode  = require('vscode')
+  , _       = require('lodash')
   ;
+
+var taskmill_cli = require('taskmill-cli');
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -29,15 +23,10 @@ function activate(context) {
 		// Display a message box to the user
 		// vscode.window.showInformationMessage('Hello World!');
         
-        var opts = {
-            url     : 'https://taskmill.io/script/search'
-          , json    : true
-        };
-        
         var editor = vscode.window.activeTextEditor;
         
         vscode.window
-                .showQuickPick(rp.get(opts).then(function(result){
+                .showQuickPick(taskmill_cli.search().then(function(result){
                     return _.map(result, function(item){ return _.extend(item, { description : item.description || '', detail : item.html_url || '', label: item.title || '' }); });
                 }))
                 .then(function(chosen) {
@@ -46,67 +35,32 @@ function activate(context) {
                         if (editor) {
                              text = editor.document.getText(editor.selection);
                         }
-                        
-                        var opts = {
-                            method  : 'GET'
-                          , url     : chosen.run_url
-                        };
-                        
-                        if (text) {
-                            opts.method = 'POST';
-                            opts.body = text;
-                        }
-                        
-                        return Promise
-                                .promisify(tmp.tmpName)({ prefix : 'taskmill-'/*, postfix : '.tmp'*/ })
-                                .then(function(filename) {
-                                    return new Promise(function(resolve, reject){
-                                        var res = request(opts)
-                                                    .on('response', function(response) {
-                                                        var ext             = mime.extension(response.headers['content-type'])
-                                                          , enc             = mime.charset(response.headers['content-type']) || 'binary'
-                                                          ;
-                                                        
-                                                        if (ext) {
-                                                            filename = filename + '.' + ext;   
-                                                        }
-                                                        
-                                                        var to = fs.createOutputStream(filename, { defaultEncoding : enc });
-                                                        
-                                                        res.pipe(to)
-                                                            .on('finish', function () {
-                                                                var ret = undefined;
-                                                                if (enc != 'binary' && editor) {
-                                                                    ret = Promise
-                                                                            .promisify(fs.readFile)(filename, { encoding : enc })
-                                                                            .then(function(text){
-                                                                                var sel = editor.selection;
-                                                                                return editor.edit(function(edit){
-                                                                                        if (sel.start.compareTo(sel.end) === 0) {
-                                                                                            edit.insert(sel.start, text);
-                                                                                        } else {
-                                                                                            var type = response.headers['$type'];
-                                                                                            if (type === 'generate') {
-                                                                                                edit.insert(sel.end, text);
-                                                                                            } else {
-                                                                                                edit.replace(sel, text);   
-                                                                                            }
-                                                                                        } 
-                                                                                    }); 
-                                                                            });
-                                                                } else {
-                                                                    open(filename);                                                                   
-                                                                }
-                                                                
-                                                                resolve(ret);
-                                                            })
-                                                            .on('error', function(err){
-                                                                reject(err);
-                                                            }); 
-                                                    })
-                                                    .on('error', function(err){ reject(err); });
-                                    }); 
-                                });
+              
+                        taskmill_cli
+                            .run(chosen.run_url, text)
+                            .then(function(result){
+                                if (result.encoding != 'binary' && editor) {
+                                    return result
+                                            .readFile()
+                                            .then(function(text){
+                                                var sel = editor.selection;
+                                                return editor.edit(function(edit){
+                                                        if (sel.start.compareTo(sel.end) === 0) {
+                                                            edit.insert(sel.start, text);
+                                                        } else {
+                                                            var type = result.headers['$type'];
+                                                            if (type === 'generate') {
+                                                                edit.insert(sel.end, text);
+                                                            } else {
+                                                                edit.replace(sel, text);   
+                                                            }
+                                                        } 
+                                                    }); 
+                                            });
+                                } else {
+                                    return result.open();                                                                   
+                                }
+                            });
                     }
                 })
                 .catch(function(err) {
