@@ -50,7 +50,7 @@ function activate(context) {
                                                         } else {
                                                             var type = result.headers['$type'];
                                                             if (type === 'generate') {
-                                                                edit.insert(sel.end, text);
+                                                                edit.insert(sel.end, '\n' + text);
                                                             } else {
                                                                 edit.replace(sel, text);   
                                                             }
@@ -65,8 +65,7 @@ function activate(context) {
                 })
                 .catch(function(err) {
                     console.error(err);
-                })
-                ;
+                });
 	});
 	
 	context.subscriptions.push(disposable);
