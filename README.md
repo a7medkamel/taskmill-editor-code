@@ -1,13 +1,21 @@
-# README
-## This is the README for your extension "taskmill" 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+# TaskMill Visual Studio Code Plugin
 
-* Split the editor (`Cmd+\` on OSX or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on OSX or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (OSX) to see a list of Markdown snippets
+This is the companion plugin to TaskMill.io
 
-### For more information
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+## Usage
+Type ⌘+shift+t (ctrl+shift+t) to trigger the TaskMill script selection menu.
 
-** Enjoy!**
+You will be shown a list of all the scripts you have access to, select the one to run.
+
+Any selected text will be sent to the script as input.
+
+## Documentation
+
+Visit http://taskmill.io for more details
+
+## What is Task Mill?
+Why waste time with infrastructure when all you want is to focus on your code?
+
+TaskMill will securely run node scripts from your GitHub repositories.
+
+Replace github.com with taskmill.io in your script's url and cURL it.
