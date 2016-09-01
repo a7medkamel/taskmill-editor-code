@@ -48,11 +48,23 @@ function activate(context) {
                                                         if (sel.start.compareTo(sel.end) === 0) {
                                                             edit.insert(sel.start, text);
                                                         } else {
-                                                            var type = result.headers['$type'];
-                                                            if (type === 'generate') {
-                                                                edit.insert(sel.end, '\n' + text);
-                                                            } else {
+                                                            var pragma = result.pragma;
+                                                            var re = /^editor\s+(\w+)$/; 
+                                                            var directive = _.chain(pragma)
+                                                                            .map(function(pragma) {
+                                                                                var m = undefined;
+                                                                                if (m = re.exec(pragma)) {
+                                                                                    return m[1];
+                                                                                }
+                                                                            })
+                                                                            .compact()
+                                                                            .first()
+                                                                            .value();
+                                                          
+                                                            if (directive === 'replace') {
                                                                 edit.replace(sel, text);   
+                                                            } else {
+                                                                edit.insert(sel.end, '\n' + text);
                                                             }
                                                         } 
                                                     }); 

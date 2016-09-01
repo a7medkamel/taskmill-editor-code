@@ -1,6 +1,6 @@
 {
-  "name": "taskmill",
-  "displayName": "TaskMill",
+  "name": "breadboard",
+  "displayName": "Breadboard",
   "description": "Run Node Scripts hosted on GitHub through your editor",
   "version": "0.0.3",
   "publisher": "a7medkamel",
@@ -18,14 +18,14 @@
     "commands": [
       {
         "command": "extension.run_git",
-        "title": "TaskMill"
+        "title": "Breadboard"
       }
     ],
     "keybindings": [
       {
         "command": "extension.run_git",
-        "key": "Ctrl+Shift+T",
-        "mac": "Cmd+Shift+T"
+        "key": "Ctrl+Shift+R",
+        "mac": "Cmd+Shift+R"
       }
     ]
   },
